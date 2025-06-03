@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from prophet import Prophet
 from io import BytesIO
 from fpdf import FPDF
 
@@ -120,7 +120,7 @@ def create_pdf(df):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="📦 E-commerce Demand Forecast Report", ln=1, align='C')
+    pdf.cell(200, 10, txt=" E-commerce Demand Forecast Report", ln=1, align='C')
 
     for index, row in df.iterrows():
         line = f"{row['ds'].date()} - Predicted: {row['yhat']:.2f}"
