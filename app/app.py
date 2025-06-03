@@ -69,40 +69,40 @@ if file:
         st.markdown(" **Explanation:** This line graph shows the trend in units sold over the selected period. Peaks indicate days of high demand which could relate to promotions, weekends, or seasonal events.**")
 
     # View 2: Forecasting
+        st.subheader(f"Forecast for Next {forecast_period} Days")
+
+    # Prepare data for Prophet
+    daily_sales = df_filtered.groupby("Date")["Units_Sold"].sum().reset_index()
+    daily_sales.columns = ["ds", "y"]  # Prophet expects these exact column names
+
+    if len(daily_sales) < 2:
+        st.error("Not enough data to forecast.")
     else:
-        st.subheader(f" Forecast for Next {forecast_period} Days")
+        try:
+            from prophet import Prophet  # Local import to isolate error if not installed
 
-        grouped = filtered_df.groupby('Date')['Units_Sold'].sum().reset_index()
-        grouped.columns = ['ds', 'y']
+            # Initialize and train model
+            model = Prophet()
+            model.fit(daily_sales)
 
-        if len(grouped) < 2:
-            st.error(" Not enough data for forecasting.")
-        else:
-            m = Prophet()
-            m.fit(grouped)
+            # Make future dataframe
+            future = model.make_future_dataframe(periods=forecast_period)
+            forecast = model.predict(future)
 
-            future = m.make_future_dataframe(periods=forecast_period)
-            forecast = m.predict(future)
-
-            st.write("Forecast Plot:")
-            fig1 = m.plot(forecast)
+            # Plot the forecast
+            fig1 = model.plot(forecast)
             st.pyplot(fig1)
 
-            st.markdown("**Explanation:** The graph shows predicted sales with confidence intervals. This helps plan inventory, campaigns, and logistics. Look for rising trends (increased demand) or drops (less interest).**")
+            # Show forecast table
+            forecast_table = forecast[["ds", "yhat"]].tail(forecast_period)
+            forecast_table.columns = ["Date", "Predicted Units Sold"]
+            st.dataframe(forecast_table)
 
-            forecast_result = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(forecast_period)
-            st.write("Forecast Table:")
-            st.dataframe(forecast_result)
+        except ModuleNotFoundError:
+            st.error("⚠ Prophet is not installed. Add `prophet` to your requirements.txt file.")
+        except Exception as e:
+            st.error(f"⚠ Forecasting failed: {e}")
 
-            # Stock Refill Alert
-            stock_threshold = st.number_input(" Set Stock Refill Threshold", value=500, min_value=0)
-            alerts = forecast_result[forecast_result['yhat'] > stock_threshold]
-
-            if not alerts.empty:
-                st.warning(" **Stock Refill Alert:** These dates may exceed your stock threshold!")
-                st.dataframe(alerts[['ds', 'yhat']])
-            else:
-                st.success(" No stock refill alerts for the selected forecast period.")
 
             # CSV Download
             csv = forecast_result.to_csv(index=False).encode('utf-8')
