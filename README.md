@@ -38,7 +38,7 @@ real_time_ecommerce_demand_forecaster/
 
 ## 💽 Demo
 
-> _Coming soon_ – live deployment on **Streamlit Cloud** / **Hugging Face Spaces**
+> https://real-time-ecommerce-demand-forecaster-nhdopcaimqmtnhfvto6rqr.streamlit.app/
 
 ---
 
